@@ -1,5 +1,4 @@
 #!/usr/bin/python3.7 -i
-
 import sys
 import subprocess
 import os
@@ -21,11 +20,6 @@ import pymol
 pymol.pymol_argv = ['pymol','-qc'] + sys.argv[1:]
 pymol.finish_launching()
 cmd = pymol.cmd
-print("Printing Okay because we have successfully initialized pymol")
-#cmd.load("./6DRV_A.pdb","test_file")
-#my_fasta = str(cmd.get_fastastr("test_file")).split("\n")#.replace("\n","")
-#my_fasta_string_only = "".join(my_fasta[1:])
-#print(len(my_fasta_string_only))
 
 def get_tmscore_from_zang(native_structure,decoy_structure,path_to_tmscore_binary):
 	tm_output = subprocess.check_output([str(path_to_tmscore_binary),str(native_structure),str(decoy_structure)])
@@ -37,7 +31,6 @@ def get_tmscore_from_zang(native_structure,decoy_structure,path_to_tmscore_binar
 			tm_score = float(x[2])
 
 	return tm_score
-
 
 def benchmark_esmfold(native_structure,path_to_save):
 	native_existence = os.path.isfile(str(native_structure))

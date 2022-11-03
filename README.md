@@ -1,32 +1,17 @@
-# PymolFold
+# Benchmark\_ESM\_Fold
 
-Predict your protein in Pymol!  
-Inspired by [ColabFold](https://github.com/sokrypton/ColabFold) by [Sergey O](https://github.com/sokrypton).  
-Visualization inspired by [pymol-color-alphafold](https://github.com/cbalbin-bio/pymol-color-alphafold).  
-Thanks to ESMFold by Meta and the [API](https://esmatlas.com/about#api).  
+Benchmark ESMFold predictions by RMSD and TMScore!  
+Currently this script is limited to predictions with sequence length < 400 because of the [API](https://esmatlas.com/about#api) limitations.
 
-Tested under macOS Monterey Version 12.5.1, Python 3.7.12.  
-Open an issue if ran into any errors.  
+TODO:Work around the 400 seq lenght limitation.  
 
-## Usage
+## Example Usage
 
-1. Load extension into pymol. In the pymol command prompt:
+1. On terminal type the following:
 
-```
-run https://raw.githubusercontent.com/JinyuanSun/PymolFold/main/predict_structure.py
-# try command below in China mainland:
-run https://raw.staticdn.net/JinyuanSun/PymolFold/main/predict_structure.py
-```
 
-2. Fold your protein!
+2. Result is printed on screen!
 
-```
-esmfold GENGEIPLEIRATTGAEVDTRAVTAVEMTEGTLGIFRLPEEDYTALENFRYNRVAGENWKPASTVIYVGGTYARLCAYAPYNSVEFKNSSLKTEAGLTMQTYAAEKDMRFAVSGGDEVWKKTPTANFELKRAYARLVLSVVRDATYPNTCKITKAKIEAFTGNIITANTVDISTGTEGSGTQTPQYIHTVTTGLKDGFAIGLPQQTFSGGVVLTLTVDGMEYSVTIPANKLSTFVRGTKYIVSLAVKGGKLTLMSDKILIDKDWAEVQTGTGGSGDDYDTSFN, test
-coloresm
-orient 
-ray 1280, 960, async=1
-```
-![Step 2 Screenshot](img/esmfold.png)
 
 ## Reference
 
