@@ -27,8 +27,7 @@ print("Printing Okay because we have successfully initialized pymol")
 #my_fasta_string_only = "".join(my_fasta[1:])
 #print(len(my_fasta_string_only))
 
-def get_tmscore_from_zang(native_structure,decoy_structure,path_to_tmscore_binary="./TMscore"):
-	assert path_to_tmscore_binary == True, "TMscore binary file not found in path. TMscore was not calculated and the script will now crash."
+def get_tmscore_from_zang(native_structure,decoy_structure,path_to_tmscore_binary):
 	tm_output = subprocess.check_output([str(path_to_tmscore_binary),str(native_structure),str(decoy_structure)])
 	tm_output = str(tm_output).split("\\n")
 	tm_score = None
@@ -49,26 +48,27 @@ def benchmark_esmfold(native_structure,path_to_save):
 	cmd.load(str(native_structure), str(pdb_name))
 	fasta_with_carrot = str(cmd.get_fastastr(str(pdb_name))).split("\n")
 	fasta_without_carrot = "".join(fasta_with_carrot[1:])
+	seq_length = len(fasta_without_carrot)
+	assert seq_length < 400, "Cannot predit sequecnce with sequence length >= 400"
 	print(len(fasta_without_carrot))
 	headers = {
 		'Content-Type': 'application/x-www-form-urlencoded',
 	}
 
 	response = requests.post('https://api.esmatlas.com/foldSequence/v1/pdb/', headers=headers, data=fasta_without_carrot)
-	predicted_structure_filename = os.path.join(path_to_save, pdb_name) + "_esm_pred.pdb"
+	print(response)
+	predicted_structure_filename = path_to_save+pdb_name+'_esm_pred.pdb'
+	pred_file_handler = open(predicted_structure_filename,"w+")
 	pdb_string = response.content.decode('utf-8')
-	if pdb_string.startswith("HEADER"):
-		with open(predicted_structure_filename, "w") as out:
-			out.write(pdb_string)
-		print(f"Results saved to {predicted_structure_filename}")
-	else:
-		print(pdb_string)	
-	
+	pred_file_handler.write(pdb_string)
+	pred_file_handler.close()
+	is_pred_file_empty = os.stat(str(predicted_structure_filename)).st_size
+	assert	is_pred_file_empty != 0, "The prediction did not go through and the file is empty. Check script"
 	decoy_existence = os.path.isfile(str(predicted_structure_filename))
-	assert decoy_existence == True, "The prediction does not exist in the specified path. Dive into the script and let me know what I did wrong"
+	assert decoy_existence == True, "The prediction does not exist in the specified path."
 	cmd.load(predicted_structure_filename,"esm_decoy")
 	ca_rmsd  = float(str(cmd.align(str(pdb_name)+' and n. CA','esm_decoy and n. CA')).split()[3].split(',')[0])
-	tm_score = get_tmscore_from_zang(native_structure,predicted_structure_filename)
+	tm_score = get_tmscore_from_zang(native_structure,predicted_structure_filename,"./TMscore")
 	print(native_structure,str(ca_rmsd),str(tm_score))
 
 benchmark_esmfold("./2mlt_A.pdb","./")
