@@ -5,6 +5,7 @@ Currently this script is limited to predictions with sequence length < 400 becau
 
 TODO: Work around the 400 seq lenght limitation.  
 TODO: Add argparse for pdb and path to save
+TODO: Add documentation for usage
 ## Example Usage
 
 1. On terminal type the following:
