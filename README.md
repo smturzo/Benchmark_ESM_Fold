@@ -3,8 +3,8 @@
 Benchmark ESMFold predictions by RMSD and TMScore!  
 Currently this script is limited to predictions with sequence length < 400 because of the [API](https://esmatlas.com/about#api) limitations.
 
-TODO:Work around the 400 seq lenght limitation.  
-
+TODO: Work around the 400 seq lenght limitation.  
+TODO: Add argparse for pdb and path to save
 ## Example Usage
 
 1. On terminal type the following:
