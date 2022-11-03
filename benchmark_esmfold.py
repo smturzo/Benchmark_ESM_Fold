@@ -1,4 +1,6 @@
 #!/usr/bin/python3.7 -i
+import torch
+import esm
 import sys
 import subprocess
 import os
@@ -20,6 +22,10 @@ import pymol
 pymol.pymol_argv = ['pymol','-qc'] + sys.argv[1:]
 pymol.finish_launching()
 cmd = pymol.cmd
+
+def esm_fold_for_large_seq(sequence):
+    pass
+
 
 def get_tmscore_from_zang(native_structure,decoy_structure,path_to_tmscore_binary):
 	tm_output = subprocess.check_output([str(path_to_tmscore_binary),str(native_structure),str(decoy_structure)])
