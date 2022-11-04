@@ -1,1 +1,3 @@
 benchmark/
+run_batch_pymol
+submit_osc_script.sh
