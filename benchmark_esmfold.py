@@ -11,7 +11,16 @@ import argparse
 import biotite.structure.io as bsio
 from Bio import SeqIO
 
-#ABS_PATH = os.path.abspath('./')
+my_parser = argparse.ArgumentParser(description='Benchmark ESMFold prediction with RMSD and TMScore metric for a known protein structure. Currently only supports pdb file format.')
+my_parser.add_argument('-s', type=str, required=True, help = 'The known structure you want to benchmark ESM-Fold prediction capabilities')
+my_parser.add_argument('-o', type=str, required=True, help = 'The output path where you want to save ESM-Fold predictions')
+args = my_parser.parse_args()
+
+known_structure = str(args.s)
+out_path = str(args.o)
+
+print(known_structure)
+print(out_path)
 
 # autocompletion
 import readline
@@ -20,9 +29,15 @@ readline.parse_and_bind('tab: complete')
 
 # pymol launching
 import pymol
-pymol.pymol_argv = ['pymol','-qc'] + sys.argv[1:]
+pymol.pymol_argv = ['pymol','-qc']
 pymol.finish_launching()
 cmd = pymol.cmd
+#cmd.load(known_structure,'native')
+#fasta_with_carrot = str(cmd.get_fastastr('native')).split("\n")
+#fasta_without_carrot = "".join(fasta_with_carrot[1:])
+#seq_length = len(fasta_without_carrot)
+#print(seq_length)
+#cmd.quit()
 
 def esm_fold_for_large_seq(sequence):
 	model = esm.pretrained.esmfold_v1()
@@ -43,43 +58,41 @@ def get_tmscore_from_zang(native_structure,decoy_structure,path_to_tmscore_binar
 	return tm_score
 
 def benchmark_esmfold(native_structure,path_to_save):
-	native_existence = os.path.isfile(str(native_structure))
-	assert native_existence == True, "Native structure does not exist in the specified path. Provide native structure with the full directory path"
-	cmd.delete('all')
-	pdb_name = str(native_structure).split("/")[-1].split(".pdb")[0]
-	cmd.load(str(native_structure), str(pdb_name))
-	fasta_with_carrot = str(cmd.get_fastastr(str(pdb_name))).split("\n")
-	fasta_without_carrot = "".join(fasta_with_carrot[1:])
-	seq_length = len(fasta_without_carrot)
-	predicted_structure_filename = path_to_save+pdb_name+'_esm_pred.pdb'
-	pred_file_handler = open(predicted_structure_filename,"w+")
+    native_existence = os.path.isfile(str(native_structure))
+    assert native_existence == True, "Native structure does not exist in the specified path. Provide native structure with the full directory path"
+    cmd.delete('all')
+    pdb_name = str(native_structure).split("/")[-1].split(".pdb")[0]
+    cmd.load(str(native_structure), str(pdb_name))
+    fasta_with_carrot = str(cmd.get_fastastr(str(pdb_name))).split("\n")
+    fasta_without_carrot = "".join(fasta_with_carrot[1:])
+    seq_length = len(fasta_without_carrot)
+    print(seq_length)
+    predicted_structure_filename = path_to_save+pdb_name+'_esm_pred.pdb'
 
-	if seq_length < 400 :
-		headers = {
-			'Content-Type': 'application/x-www-form-urlencoded',
-		}
-		response = requests.post('https://api.esmatlas.com/foldSequence/v1/pdb/', headers=headers, data=fasta_without_carrot)
-		#predicted_structure_filename = path_to_save+pdb_name+'_esm_pred.pdb'
-		#pred_file_handler = open(predicted_structure_filename,"w+")
-		pdb_string = response.content.decode('utf-8')
-		pred_file_handler.write(pdb_string)
-		pred_file_handler.close()
-	else:
-		pdb_string = esm_fold_for_large_seq(fasta_without_carrot)	
-		pred_file_handler.write(pdb_string)
-		pred_file_handler.close()
+    pred_file_handler = open(predicted_structure_filename,"w+")
+    if seq_length < 400 :
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        }
+        response = requests.post('https://api.esmatlas.com/foldSequence/v1/pdb/', headers=headers, data=fasta_without_carrot)
+        pdb_string = response.content.decode('utf-8')
+        pred_file_handler.write(pdb_string)
+        pred_file_handler.close()
+    else:
+        pdb_string = esm_fold_for_large_seq(fasta_without_carrot)	
+        pred_file_handler.write(pdb_string)
+        pred_file_handler.close()
 	
-	is_pred_file_empty = os.stat(str(predicted_structure_filename)).st_size
-	assert	is_pred_file_empty != 0, "The prediction did not go through and the file is empty. Check script"
-	decoy_existence = os.path.isfile(str(predicted_structure_filename))
-	assert decoy_existence == True, "The prediction does not exist in the specified path."
-	cmd.load(predicted_structure_filename,"esm_decoy")
-	ca_rmsd  = round(float(str(cmd.align(str(pdb_name)+' and n. CA','esm_decoy and n. CA')).split()[3].split(',')[0]),3)
-	tm_score = round(get_tmscore_from_zang(native_structure,predicted_structure_filename,"./TMscore"),3)
-	plddt_column = bsio.load_structure(predicted_structure_filename, extra_fields=["b_factor"])
-	mean_plddt = round(plddt_column.b_factor.mean(),3)
-	print(native_structure,seq_length,str(ca_rmsd),str(tm_score),str(mean_plddt))
+    is_pred_file_empty = os.stat(str(predicted_structure_filename)).st_size
+    assert is_pred_file_empty != 0, "The prediction did not go through and the file is empty. Check script"
+    decoy_existence = os.path.isfile(str(predicted_structure_filename))
+    assert decoy_existence == True, "The prediction does not exist in the specified path."
+    cmd.load(predicted_structure_filename,"esm_decoy")
+    ca_rmsd  = round(float(str(cmd.align(str(pdb_name)+' and n. CA','esm_decoy and n. CA')).split()[3].split(',')[0]),3)
+    tm_score = round(get_tmscore_from_zang(native_structure,predicted_structure_filename,"./TMscore"),3)
+    plddt_column = bsio.load_structure(predicted_structure_filename, extra_fields=["b_factor"])
+    mean_plddt = round(plddt_column.b_factor.mean(),3)
+    print(native_structure,seq_length,str(ca_rmsd),str(tm_score),str(mean_plddt))
+    cmd.quit()
 
-benchmark_esmfold("./2mlt_A.pdb","./")
-
-
+benchmark_esmfold(known_structure,out_path)
