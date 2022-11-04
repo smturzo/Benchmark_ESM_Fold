@@ -1,3 +1,5 @@
 benchmark/
 run_batch_pymol
 submit_osc_script.sh
+esm_full_error.txt
+esm_full_log.txt

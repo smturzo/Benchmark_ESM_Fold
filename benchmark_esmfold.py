@@ -18,10 +18,6 @@ args = my_parser.parse_args()
 
 known_structure = str(args.s)
 out_path = str(args.o)
-
-print(known_structure)
-print(out_path)
-
 # autocompletion
 import readline
 import rlcompleter
@@ -32,12 +28,6 @@ import pymol
 pymol.pymol_argv = ['pymol','-qc']
 pymol.finish_launching()
 cmd = pymol.cmd
-#cmd.load(known_structure,'native')
-#fasta_with_carrot = str(cmd.get_fastastr('native')).split("\n")
-#fasta_without_carrot = "".join(fasta_with_carrot[1:])
-#seq_length = len(fasta_without_carrot)
-#print(seq_length)
-#cmd.quit()
 
 def esm_fold_for_large_seq(sequence):
 	model = esm.pretrained.esmfold_v1()
@@ -66,23 +56,11 @@ def benchmark_esmfold(native_structure,path_to_save):
     fasta_with_carrot = str(cmd.get_fastastr(str(pdb_name))).split("\n")
     fasta_without_carrot = "".join(fasta_with_carrot[1:])
     seq_length = len(fasta_without_carrot)
-    print(seq_length)
     predicted_structure_filename = path_to_save+pdb_name+'_esm_pred.pdb'
-
     pred_file_handler = open(predicted_structure_filename,"w+")
-    if seq_length < 400 :
-        headers = {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        }
-        response = requests.post('https://api.esmatlas.com/foldSequence/v1/pdb/', headers=headers, data=fasta_without_carrot)
-        pdb_string = response.content.decode('utf-8')
-        pred_file_handler.write(pdb_string)
-        pred_file_handler.close()
-    else:
-        pdb_string = esm_fold_for_large_seq(fasta_without_carrot)	
-        pred_file_handler.write(pdb_string)
-        pred_file_handler.close()
-	
+    pdb_string = esm_fold_for_large_seq(fasta_without_carrot)	
+    pred_file_handler.write(pdb_string)
+    pred_file_handler.close()
     is_pred_file_empty = os.stat(str(predicted_structure_filename)).st_size
     assert is_pred_file_empty != 0, "The prediction did not go through and the file is empty. Check script"
     decoy_existence = os.path.isfile(str(predicted_structure_filename))
